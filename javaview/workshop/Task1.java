@@ -16,6 +16,7 @@ public class Task1 extends PjWorkshop {
 
 	PgElementSet m_geom;
 	PgElementSet m_geomSave;
+	boolean traversedAll = false; //for checking if we traversed all the vertices in the geometry
 	
 	public Task1() {
 		super("Task1 of the geometric model");
@@ -34,8 +35,28 @@ public class Task1 extends PjWorkshop {
 	}
 	
 	public int computeGenus() {
+		int num_Vertices,num_Faces,num_Edges;
+		num_Vertices = m_geom.getNumVertices(); //Alternative length of getVertices()
+		num_Faces = m_geom.getNumElements();
+		num_Edges = 3*num_Faces/2;
+		int edges = m_geom.getNumEdges();
+		double result = (num_Vertices- edges +num_Faces)/2.0;
+		
+		return (int)(1-result);
+	}
+	
+	public int printVerticeNumber(){
+		return m_geom.getNumVertices();
+	}
 
-		return 0;
+	public int printFaceNumber(){
+		return m_geom.getNumElements();
+	}
+
+	public int printEdgeNumber(){
+		int v = m_geom.getNumVertices();
+		int f = m_geom.getNumElements();
+		return 3*f/2;
 	}
 	
 	public double computeVolume() {
@@ -46,7 +67,55 @@ public class Task1 extends PjWorkshop {
 	
 	public int computeComponents() {
 		
-		return 0;
+		int compsNum = 0;
+		PiVector [] faces = m_geom.getNeighbours();
+		boolean [] visited = new boolean [faces.length];
+		//boolean traversedAll = false;
+		
+		int current = -1;
+		while(!traversedAll){
+			/*for(int i =0; i<visited.length; i++){
+				if(visited[i]==false){
+					traversedAll=visited[i];
+					current=i;
+					break;
+				}
+				else if (i==visited.length && visited[i]==true){
+					traversedAll=true;
+				}
+			}
+			if(traversedAll){
+				return compsNum;
+			}*/
+			current = checkVisited(visited);
+			if(traversedAll){
+				return compsNum;
+			}
+			compsNum++;
+			Stack<Integer> todo = new Stack<Integer>(); 
+			todo.push(current);
+			
+			while(!todo.isEmpty()){
+				int a = todo.pop();
+				if(!visited[a]){
+					visited[a]=true;
+					for (int faceIndex : faces[a].getEntries()) {
+						todo.push(faceIndex);
+					}
+				}
+			}	
+		}
+		return compsNum;
+	}
+	
+	public int checkVisited(boolean [] visited){
+		for(int i =0; i<visited.length; i++){
+			if(visited[i]==false){
+				return i;
+			}
+		}
+		traversedAll=true;
+		return -1;
 	}
 	
 }

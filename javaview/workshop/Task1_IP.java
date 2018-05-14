@@ -14,10 +14,16 @@ public class Task1_IP extends PjWorkshop_IP implements ActionListener {
 	protected Button genusbtn;
 	protected Button volumebtn;
 	protected Button componentbtn;
+	protected Button vbtn;
+	protected Button ebtn;
+	protected Button fbtn;
 	
 	protected Label genuslbl;
 	protected Label volumelbl;
 	protected Label componentlbl;
+	protected Label vlbl;
+	protected Label elbl;
+	protected Label flbl;
 	
 	Task1 t1;
 	
@@ -46,17 +52,35 @@ public class Task1_IP extends PjWorkshop_IP implements ActionListener {
 		componentbtn = new Button("No. of Connected Components");
 		componentbtn.addActionListener(this);
 		
+		vbtn = new Button("Number of vertices");
+		vbtn.addActionListener(this);
+		ebtn = new Button("Number of edges");
+		ebtn.addActionListener(this);
+		fbtn = new Button("Number of faces");
+		fbtn.addActionListener(this);
+		
 		genuslbl = new Label();
 		volumelbl = new Label();
 		componentlbl = new Label();
 		
-		Panel panel = new Panel(new GridLayout(3, 2));
+		vlbl = new Label();
+		elbl = new Label();
+		flbl = new Label();
+		
+		Panel panel = new Panel(new GridLayout(6, 2));
 		panel.add(genusbtn);
 		panel.add(genuslbl);
 		panel.add(volumebtn);
 		panel.add(volumelbl);
 		panel.add(componentbtn);
 		panel.add(componentlbl);
+		
+		panel.add(vbtn);
+		panel.add(vlbl);
+		panel.add(ebtn);
+		panel.add(elbl);
+		panel.add(fbtn);
+		panel.add(flbl);
 
 		add(panel);
 		
@@ -82,6 +106,23 @@ public class Task1_IP extends PjWorkshop_IP implements ActionListener {
 			t1.m_geom.update(t1.m_geom);
 			return;
 		} 
+		else if (source == vbtn) {
+			vlbl.setText("...");
+			vlbl.setText(t1.printVerticeNumber() + "");
+			t1.m_geom.update(t1.m_geom);
+			return;
+		} else if (source == ebtn) {
+			elbl.setText("...");
+			elbl.setText(t1.printEdgeNumber() + "");
+			t1.m_geom.update(t1.m_geom);
+			return;
+		} 
+		else if (source == fbtn) {
+			flbl.setText("...");
+			flbl.setText(t1.printFaceNumber() + "");
+			t1.m_geom.update(t1.m_geom);
+			return;
+		}  
 	}
 	
 	protected int getDialogButtons(){
