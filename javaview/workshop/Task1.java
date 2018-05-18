@@ -40,9 +40,13 @@ public class Task1 extends PjWorkshop {
 		num_Faces = m_geom.getNumElements();
 		num_Edges = 3*num_Faces/2;
 		int edges = m_geom.getNumEdges();
-		double result = (num_Vertices- edges +num_Faces)/2.0;
+		double result = (num_Vertices- num_Edges +num_Faces)/2.0;
+		result= 1- result;
+		if (result<0){
+			return 0;
+		}
 		
-		return (int)(1-result);
+		return (int)(result);
 	}
 	
 	public int printVerticeNumber(){
@@ -59,15 +63,19 @@ public class Task1 extends PjWorkshop {
 		return 3*f/2;
 	}
 	
-	public float tetrahedronVolume(PdVector a, PdVector b, PdVector c){
-		return dot(crossNew(b,c),a) / 6.0f;
+	public double tetrahedronVolume(PdVector a, PdVector b, PdVector c){
+		//PdVector cross = PdVector.crossNew(b, c);
+		//double dot = PdVector.dot(cross, a);
+		return PdVector.dot(PdVector.crossNew(c,b),a) / 6.0f;
+		//return dot/6.0;
 	}
 	public double computeVolume() {
 		
 		PdVector [] vertices = m_geom.getVertices();
-		PdVector vol = new PdVector((vertices.getSize()/3)) // number of triangles ?
-		for(int i = 0; i<vertices.getSize(); i += 3){ // length?
-			vol.addEntry(tetrahedronVolume(vertices[i],vertices[i+1],vertices[i+2]))
+		PdVector vol = new PdVector((vertices.length/3)); // number of triangles ?
+		for(int i = 0; i<vertices.length; i += 3){ // length?
+			vol.addEntry(tetrahedronVolume(vertices[i],vertices[i+1],vertices[i+2]));
+			//vol.addEntry(tetrahedronVolume(vertices.getEntries(i),vertices.getEntries(i+1),vertices.getEntries(i+2)));
 		}
 		return vol.sum();
 	}
