@@ -59,10 +59,17 @@ public class Task1 extends PjWorkshop {
 		return 3*f/2;
 	}
 	
+	public float tetrahedronVolume(PdVector a, PdVector b, PdVector c){
+		return dot(crossNew(b,c),a) / 6.0f;
+	}
 	public double computeVolume() {
 		
-		
-		return 0.0;
+		PdVector [] vertices = m_geom.getVertices();
+		PdVector vol = new PdVector((vertices.getSize()/3)) // number of triangles ?
+		for(int i = 0; i<vertices.getSize(); i += 3){ // length?
+			vol.addEntry(tetrahedronVolume(vertices[i],vertices[i+1],vertices[i+2]))
+		}
+		return vol.sum();
 	}
 	
 	public int computeComponents() {
