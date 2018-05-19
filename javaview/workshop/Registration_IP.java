@@ -22,6 +22,9 @@ import jv.viewer.PvDisplay;
 import jvx.project.PjWorkshop_IP;
 
 
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Info Panel of Workshop for surface registration
  *
@@ -46,7 +49,7 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 	 * The text is split at line breaks into individual lines on the dialog.
 	 */
 	public String getNotice() {
-		return "This text should explain what the workshop is about and how to use it.";
+		return "Select the two meshes for closest point registration";
 	}
 	
 	/** Assign a parent object. */
@@ -126,6 +129,8 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		if (source == m_bSetSurfaces) {
 			m_registration.setGeometries((PgElementSet)m_geomList.elementAt(m_listActive.getSelectedIndex()),
 			(PgElementSet)m_geomList.elementAt(m_listPassive.getSelectedIndex()));
+			addSubTitle("P= " + String.valueOf(m_registration.RandomSelectionP()));
+			addSubTitle("Q= " + String.valueOf(m_registration.RandomSelectionQ()));	
 			return;
 		}
 	}
