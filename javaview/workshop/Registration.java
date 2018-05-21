@@ -4,9 +4,12 @@ import java.awt.Color;
 import java.util.Vector;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+
+import com.sun.javafx.geom.PickRay;
 
 import jv.geom.PgBndPolygon;
 import jv.geom.PgElementSet;
@@ -25,6 +28,7 @@ import jv.viewer.PvDisplay;
 import jv.project.PvGeometryIf;
 
 import jvx.project.PjWorkshop;
+import sun.java2d.cmm.ProfileDataVerifier;
 
 
 /**
@@ -41,6 +45,7 @@ public class Registration extends PjWorkshop {
 	// Vectors that contain the indices of randomly selected points from surface P and Q	
 	List<Integer> PointsOfSurfaceP = new ArrayList<Integer>();
 	List<Integer> PointsOfSurfaceQ = new ArrayList<Integer>();
+	List<Integer> PmatchQidx = new ArrayList<Integer>();
 
 	/** Constructor */
 	public Registration() {
@@ -102,4 +107,78 @@ public class Registration extends PjWorkshop {
 		return PointsOfSurfaceQ.size();
 	}
 
+	/*****Closest Distance*****/
+	public int closestVertex(){
+		int RandSelP = RandomSelectionP();
+		int RandSelQ = RandomSelectionQ();
+		double[] distpts = new double[RandSelQ];
+
+		PdVector [] vertices_P = m_surfP.getVertices();
+		PdVector [] vertices_Q = m_surfQ.getVertices();
+
+		for (int i = 0; i<RandSelP; i++){
+			Arrays.fill(distpts,0.0);
+			for(int j = 0; j<RandSelQ; j++){
+				distpts[j] = PdVector.dist(vertices_P[PointsOfSurfaceP.get(i)], vertices_Q[PointsOfSurfaceQ.get(j)]);
+			}
+			PmatchQidx.add(min_index(distpts)); //contains corresponding indices of Q which have min. distance with P
+		}
+		return PmatchQidx.size();
+	}
+
+	public int min_index(double[] a){
+		double min = a[0];
+		int min_idx = 0;
+		for(int i=0;i<a.length;i++){
+			if(a[i] < min){
+				min = a[i];
+				min_idx = i;
+			}
+		}
+		return min_idx;
+	}
+
+	/*****Calculate Centroid for a given PdVector([x,y,z])*****/
+	public PdVector calcCentroid(PdVector[] a){
+		PdVector ctr = new PdVector();
+		double x = 0.0;
+		double y = 0.0;
+		double z = 0.0;
+
+		for(int i=0;i<a.length;i++){
+			x += a[i][0];
+			y += a[i][1];
+			z += a[i][2];
+		}
+		x /= a.length;
+		y /= a.length;
+		z /= a.length;
+
+		ctr.addEntry(x);
+		ctr.addEntry(y);
+		ctr.addEntry(z);
+	}
+
+	/*****Calculate Median Distance*****/
+	public int MedianDistance(){
+		PdVector CentroidP = new PdVector();
+		PdVector CentroidQ = new PdVector();
+
+		PdVector[] P_points = new PdVector(PointsOfSurfaceP.size());
+		PdVector[] Q_points = new PdVector(PmatchQidx.size());
+
+		for(int i=0;i<P_points.length;i++){
+			P_points[i] = vertices_P[PointsOfSurfaceP.get(i)];
+		}
+
+		for(int i=0;i<Q_points.length;i++){
+			Q_points[i] = vertices_Q[PmatchQidx.get(i)];
+		}
+
+		CentroidP = calcCentroid(P_points);
+		CentroidQ = calcCentroid(Q_points);
+	
+
+		
+	}
 }
