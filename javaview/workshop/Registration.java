@@ -178,7 +178,7 @@ public class Registration extends PjWorkshop {
 		CentroidP = calcCentroid(P_points);
 		CentroidQ = calcCentroid(Q_points);
 	
-
+		// Median still to be calculated, not sure if point to point allocation works for centroid as well
 		
 	}
 }
