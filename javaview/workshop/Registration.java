@@ -146,9 +146,9 @@ public class Registration extends PjWorkshop {
 		double z = 0.0;
 
 		for(int i=0;i<a.length;i++){
-			x += a[i][0];
-			y += a[i][1];
-			z += a[i][2];
+			x += a[i].getEntry(0);
+			y += a[i].getEntry(1);
+			z += a[i].getEntry(2);
 		}
 		x /= a.length;
 		y /= a.length;
@@ -164,15 +164,18 @@ public class Registration extends PjWorkshop {
 		PdVector CentroidP = new PdVector();
 		PdVector CentroidQ = new PdVector();
 
+		PdVector [] vertices_P = m_surfP.getVertices();
+		PdVector [] vertices_Q = m_surfQ.getVertices();
+
 		PdVector[] P_points = new PdVector(PointsOfSurfaceP.size());
 		PdVector[] Q_points = new PdVector(PmatchQidx.size());
 
 		for(int i=0;i<P_points.length;i++){
-			P_points[i] = vertices_P[PointsOfSurfaceP.get(i)];
+			P_points[i] = vertices_P[PointsOfSurfaceP.getEntry(i)];
 		}
 
 		for(int i=0;i<Q_points.length;i++){
-			Q_points[i] = vertices_Q[PmatchQidx.get(i)];
+			Q_points[i] = vertices_Q[PmatchQidx.getEntry(i)];
 		}
 
 		CentroidP = calcCentroid(P_points);
