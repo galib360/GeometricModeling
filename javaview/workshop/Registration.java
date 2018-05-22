@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import com.sun.javafx.geom.PickRay;
+//import com.sun.javafx.geom.PickRay;
 
 import jv.geom.PgBndPolygon;
 import jv.geom.PgElementSet;
@@ -27,8 +27,11 @@ import jv.vecmath.PuMath;
 import jv.viewer.PvDisplay;
 import jv.project.PvGeometryIf;
 
+import Jama.Matrix;
+import Jama.SingularValueDecomposition;
+
 import jvx.project.PjWorkshop;
-import sun.java2d.cmm.ProfileDataVerifier;
+//import sun.java2d.cmm.ProfileDataVerifier;
 
 
 /**
@@ -157,6 +160,8 @@ public class Registration extends PjWorkshop {
 		ctr.addEntry(x);
 		ctr.addEntry(y);
 		ctr.addEntry(z);
+		
+		return ctr;
 	}
 
 	/*****Calculate Median Distance*****/
@@ -184,4 +189,47 @@ public class Registration extends PjWorkshop {
 		// Median still to be calculated, not sure if point to point allocation works for centroid as well
 		
 	}
+	
+	public PdMatrix calculateM(PdVector[] P, PdVector[] Q) {
+        PdVector pBar = calcCentroid(P);
+        PdVector qBar = calcCentroid(Q);
+
+        PdMatrix M = new PdMatrix(3);
+        for(int i = 0; i < P.length; i++) {
+            PdMatrix matrixRow = new PdMatrix();
+            
+			PdVector pMinusPBar = PdVector.subNew(verticesP[i], centroidP);
+            PdVector qMinusQBar = PdVector.subNew(verticesQ[i], centroidQ);
+            
+            matrixRow.adjoint(pMinusPBar, qMinusQBar); // = v * w^T
+            M.add(matrixRow);
+        }
+        M.multScalar(1 / P.length);
+        return M;
+    }
+	
+	public PdMatrix calculateRopt(SingularValueDecomposition svd) { //have to call this from Registration_IP after declaring the singular value decomposition
+        Matrix mat = Matrix.identity(3,3);
+        Matrix V = svd.getV();
+        Matrix UT = svd.getU();
+		UT.transpose();
+        Matrix VUT = V.times(Ut);
+		mat.set(2, 2, VUt.det());
+        Matrix optR = V.times(mat).times(Ut);
+		PdMatrix Ropt = new PdMatrix(optR.getArrayCopy());
+
+        return Ropt;
+    }
+	
+	public PdVector calculateTopt(PdVector[] P, PdVector[] Q, PdMatrix Ropt) {
+        PdVector centroidP = calcCentroid(P);
+        PdVector centroidQ = calcCentroid(Q);
+		PdVector out;
+		Ropt.leftMultMatrix(out, centroidP);
+		PdVector tOpt = PdVector.subNew(centroidQ, out);
+        return tOpt;
+    }
+
+	
 }
+

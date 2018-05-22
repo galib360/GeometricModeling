@@ -21,6 +21,9 @@ import jv.project.PvGeometryIf;
 import jv.viewer.PvDisplay;
 import jvx.project.PjWorkshop_IP;
 
+import Jama.Matrix;
+import Jama.SingularValueDecomposition;
+
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
