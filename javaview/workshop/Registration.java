@@ -47,8 +47,10 @@ public class Registration extends PjWorkshop {
 	
 	// Vectors that contain the indices of randomly selected points from surface P and Q	
 	List<Integer> PointsOfSurfaceP = new ArrayList<Integer>();
-	List<Integer> PointsOfSurfaceQ = new ArrayList<Integer>();
-	List<Integer> PmatchQidx = new ArrayList<Integer>();
+	// Arrays to save the P and Q points that match as well as the calculatetd distance between them
+	PdVector[] matchingPointsP;
+	PdVector[] matchingPointsQ;
+	double distance[] = {1,3,3,6,7,8,15}; 
 
 	/** Constructor */
 	public Registration() {
@@ -78,7 +80,7 @@ public class Registration extends PjWorkshop {
 			SelectedP[i]=-1;
 		}
 		int counter=1;
-		int numberOfSamples=numberOfPoints/3;
+		int numberOfSamples=numberOfPoints/10;
 		while (counter<=numberOfSamples){
 			int x = ThreadLocalRandom.current().nextInt(0, numberOfPoints + 1);
 			if (SelectedP[x]==-1){
@@ -89,56 +91,56 @@ public class Registration extends PjWorkshop {
 		}
 		return PointsOfSurfaceP.size();
 	}
-	
-	/*****Random selection of points from mesh Q*****/
-	public int RandomSelectionQ(){
-		int numOfPoints=m_surfQ.getNumVertices();
-		int[] SelectedQ = new int [numOfPoints];
-		for (int j=0; j<numOfPoints; j++){
-			SelectedQ[j]=-1;
-		}
-		int count=1;
-		int numOfSamples = numOfPoints/3;
-		while (count<=numOfSamples){
-			int y = ThreadLocalRandom.current().nextInt(0, numOfPoints + 1);
-			if (SelectedQ[y] == -1){
-				count++;
-				SelectedQ[y]=0;
-				PointsOfSurfaceQ.add(y);
-			}
-		}
-		return PointsOfSurfaceQ.size();
-	}
 
 	/*****Closest Distance*****/
 	public int closestVertex(){
 		int RandSelP = RandomSelectionP();
-		int RandSelQ = RandomSelectionQ();
-		double[] distpts = new double[RandSelQ];
+		int index;
+		double[] distpts = new double[RandSelP];
+		double[] results;
 
 		PdVector [] vertices_P = m_surfP.getVertices();
 		PdVector [] vertices_Q = m_surfQ.getVertices();
-
+		int lengthOfQ=vertices_Q.length - 1;
 		for (int i = 0; i<RandSelP; i++){
 			Arrays.fill(distpts,0.0);
-			for(int j = 0; j<RandSelQ; j++){
-				distpts[j] = PdVector.dist(vertices_P[PointsOfSurfaceP.get(i)], vertices_Q[PointsOfSurfaceQ.get(j)]);
+			for(int j = 0; j < lengthOfQ; j++){
+				distpts[j] = PdVector.dist(vertices_P[PointsOfSurfaceP.get(i)], vertices_Q[j]);
 			}
-			PmatchQidx.add(min_index(distpts)); //contains corresponding indices of Q which have min. distance with P
+			results = min_index(distpts);
+			index = (int) results[0];
+			matchingPointsP[i]=vertices_P[PointsOfSurfaceP.get(i)];
+			matchingPointsQ[i]=vertices_Q[index];
+			distance[i]=results[1];
 		}
-		return PmatchQidx.size();
+		return matchingPointsQ.length;
 	}
 
-	public int min_index(double[] a){
+	public double[] min_index(double[] a){
 		double min = a[0];
-		int min_idx = 0;
-		for(int i=0;i<a.length;i++){
+		int min_idx=0;
+		double result[] ={0,0};
+		for(int i=0;i<a.length-1;i++){
 			if(a[i] < min){
 				min = a[i];
 				min_idx = i;
 			}
 		}
-		return min_idx;
+		result[0]=(double)min_idx;
+		result[1]=min;
+		return result;
+	}
+
+	public PdVector[] getMatchingQ(){
+		return matchingPointsQ;
+	}
+
+	public PdVector[] getMatchingP(){
+		return matchingPointsP;
+	}
+
+	public double[] getDistances(){
+		return distance;
 	}
 
 	/*****Calculate Centroid for a given PdVector([x,y,z])*****/
@@ -160,32 +162,43 @@ public class Registration extends PjWorkshop {
 		ctr.addEntry(x);
 		ctr.addEntry(y);
 		ctr.addEntry(z);
-		
+
 		return ctr;
 	}
 
 	/*****Calculate Median Distance*****/
-	public int MedianDistance(){
-		PdVector CentroidP = new PdVector();
-		PdVector CentroidQ = new PdVector();
-
-		PdVector [] vertices_P = m_surfP.getVertices();
-		PdVector [] vertices_Q = m_surfQ.getVertices();
-
-		PdVector[] P_points = new PdVector(PointsOfSurfaceP.size());
-		PdVector[] Q_points = new PdVector(PmatchQidx.size());
-
-		for(int i=0;i<P_points.length;i++){
-			P_points[i] = vertices_P[PointsOfSurfaceP.getEntry(i)];
+	public double MedianDistance(){
+		int size=distance.length;
+		double median=0.0;
+		double[] copy_distance=distance;
+		Arrays.sort(copy_distance);
+		if (size % 2 == 0){
+			int i = size/2;
+			int j = i-1;
+			median = (copy_distance[j] + copy_distance[i])/2;
 		}
-
-		for(int i=0;i<Q_points.length;i++){
-			Q_points[i] = vertices_Q[PmatchQidx.getEntry(i)];
+		else{
+			int k = (size-1)/2;
+			median = copy_distance[k];
 		}
+		return median;
+	}
 
-		CentroidP = calcCentroid(P_points);
-		CentroidQ = calcCentroid(Q_points);
-	
+	public int DiscardPoints(int k){
+		int numberOfDiscardedPoints=0;
+		double medianValue = MedianDistance();
+		for (int i=0; i<distance.length; i++){
+			if (distance[i] > k* medianValue){
+				distance[i] = -1;
+				matchingPointsP[i] = null;
+				matchingPointsQ[i] = null;
+				numberOfDiscardedPoints++;
+			}
+		}
+		return numberOfDiscardedPoints;
+	}
+
+
 		// Median still to be calculated, not sure if point to point allocation works for centroid as well
 		
 	}
@@ -230,6 +243,5 @@ public class Registration extends PjWorkshop {
         return tOpt;
     }
 
-	
 }
 

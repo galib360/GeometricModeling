@@ -39,6 +39,10 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 	protected	Registration	m_registration;
 	protected   Button			m_bSetSurfaces;
 
+	// Our variables 
+	protected Button button_closestVertex;
+	protected Button button_discardPoints;
+
 	/** Constructor */
 	public Registration_IP () {
 		super();
@@ -85,6 +89,12 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		m_bSetSurfaces = new Button("Set selected surfaces");
 		m_bSetSurfaces.addActionListener(this);
 		pSetSurfaces.add(m_bSetSurfaces, BorderLayout.CENTER);
+		button_closestVertex = new Button ("Calculate closest vertices");
+		button_closestVertex.addActionListener(this);
+		pSetSurfaces.add(button_closestVertex,BorderLayout.NORTH);
+		button_discardPoints = new Button("Discard points");
+		button_discardPoints.addActionListener(this);
+		pSetSurfaces.add(button_discardPoints,BorderLayout.SOUTH);
 		add(pSetSurfaces);
 		
 		updateGeomList();
@@ -133,8 +143,15 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 			m_registration.setGeometries((PgElementSet)m_geomList.elementAt(m_listActive.getSelectedIndex()),
 			(PgElementSet)m_geomList.elementAt(m_listPassive.getSelectedIndex()));
 			addSubTitle("P= " + String.valueOf(m_registration.RandomSelectionP()));
-			addSubTitle("Q= " + String.valueOf(m_registration.RandomSelectionQ()));	
 			return;
+		}
+		else if (source == button_closestVertex){
+			addSubTitle("Created the button");
+			addSubTitle("HI "+String.valueOf(m_registration.closestVertex()));
+		}
+		else if (source == button_discardPoints){
+			addSubTitle("Discarding points." + String.valueOf(m_registration.MedianDistance()));
+			addSubTitle("Discrder points ="+ String.valueOf(m_registration.DiscardPoints(2)));
 		}
 	}
 	/**
