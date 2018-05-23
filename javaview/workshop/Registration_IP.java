@@ -183,7 +183,7 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		else if (source == btnRegister2){
 			//addSubTitle("Created the button");
 			lbl2.setText("Registering point2plane...");
-			//m_registration.surfaceRegistration();
+			m_registration.surfaceRegistration2();
 			lbl.setText("Registering Done!");
 		}
 		/*

@@ -321,6 +321,21 @@ public class Registration extends PjWorkshop {
 		//}
 	}
 	
+	public void surfaceRegistration2(){
+
+			PointToPlaneDistance(); 
+			int noOfDiscardedPoints = DiscardPoints(3);
+			updatePointsArray(noOfDiscardedPoints);
+			PdMatrix M = calculateM(updatedMatchingPointsP, updatedMatchingPointsP);
+			SingularValueDecomposition SVD = new SingularValueDecomposition (new Jama.Matrix(M.getEntries()));
+			PdMatrix Ropt = calculateRopt(SVD);
+			PdVector tOpt = calculateTopt(updatedMatchingPointsP, updatedMatchingPointsQ, Ropt);
+			rotation(Ropt, m_surfP);
+			translation(tOpt, m_surfP);
+			m_surfP.update(m_surfP);
+			
+	}
+	
 	
 		/**********Instead of calling closestVertex() to find point to point distance use this for point-to-plane distance************/
 	public void PointToPlaneDistance(){
