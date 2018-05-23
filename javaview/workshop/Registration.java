@@ -66,6 +66,7 @@ public class Registration extends PjWorkshop {
 	double distance [];
 	int maximumIteration = 300;
 
+
 	/** Constructor */
 	public Registration() {
 		super("Surface Registration");
@@ -108,17 +109,19 @@ public class Registration extends PjWorkshop {
 	}
 
 	/*****Closest Distance*****/
-	public void closestVertex(){
+		public int  closestVertex(){
 		int RandSelP = RandomSelectionP();
-		int index;
-		double[] distpts = new double[RandSelP];
-		double[] results;
-		
-		distance = new double [m_surfQ.getNumVertices()];
-
 		PdVector [] vertices_P = m_surfP.getVertices();
 		PdVector [] vertices_Q = m_surfQ.getVertices();
-		int lengthOfQ=vertices_Q.length - 1;
+		int lengthOfQ=vertices_Q.length ;
+		int l = m_surfQ.getNumVertices();
+		int index=0;
+		double[] distpts = new double[lengthOfQ];
+		double[] results = new double[2];
+		distance = new double [RandSelP];
+		matchingPointsQ = new PdVector[RandSelP];
+		matchingPointsP = new PdVector[RandSelP];		
+		
 		for (int i = 0; i<RandSelP; i++){
 			Arrays.fill(distpts,0.0);
 			for(int j = 0; j < lengthOfQ; j++){
@@ -130,7 +133,7 @@ public class Registration extends PjWorkshop {
 			matchingPointsQ[i]=vertices_Q[index];
 			distance[i]=results[1];
 		}
-		//return matchingPointsQ.length; //made it void
+		return matchingPointsQ.length;
 	}
 
 	public double[] min_index(double[] a){
@@ -260,30 +263,20 @@ public class Registration extends PjWorkshop {
         return tOpt;
     }
 	
-	public void updatePointsArray(/*PdVector [] P, PdVector [] Q*/){
-	/*	List <PdVector> psurf = new ArrayList<PdVector>();
-		List <PdVector> qsurf = new ArrayList<PdVector>();
-		
-		for(int i =0; i< P.length; i++){
-			if(P[i]!=null) psurf.add(P[i]); 
-		}
-		for(int i =0; i< Q.length; i++){
-			if(Q[i]!=null) qsurf.add(Q[i]); 
-		}
-		
-		updatedMatchingPointsP = psurf.toArray();
-		updatedMatchingPointsQ = qsurf.toArray();*/
+	public void updatePointsArray(int num_of_discard){
+		int updated_size = matchingPointsQ.length - num_of_discard ;
+		updatedMatchingPointsP = new PdVector[updated_size];
+		updatedMatchingPointsQ = new PdVector[updated_size];
+		updatedDistance = new double[updated_size];
 		int counter=0;
 		for (int i=0; i<distance.length; i++){
-			if (distance[i] != -1){
+			if (distance[i] != -1.0){
 				updatedDistance[counter] = distance[i];
 				updatedMatchingPointsP[counter] = matchingPointsP[i];
 				updatedMatchingPointsQ[counter] = matchingPointsQ[i];
 				counter++;
 			}
 		}
-
-
 	}
 	
 	public void translation(PdVector tOpt, PgElementSet P){
@@ -312,11 +305,11 @@ public class Registration extends PjWorkshop {
 			6. rotate, translate and update mesh
 		*/	
 		
-		for(int step =0; step< maximumIteration; step++){
+		//for(int step =0; step< maximumIteration; step++){
 			
 			closestVertex(); //random selection is called inside closest vertex
 			int noOfDiscardedPoints = DiscardPoints(3);
-			updatePointsArray(/*matchingPointsP, matchingPointsQ*/);
+			updatePointsArray(noOfDiscardedPoints);
 			PdMatrix M = calculateM(updatedMatchingPointsP, updatedMatchingPointsP);
 			SingularValueDecomposition SVD = new SingularValueDecomposition (new Jama.Matrix(M.getEntries()));
 			PdMatrix Ropt = calculateRopt(SVD);
@@ -325,6 +318,41 @@ public class Registration extends PjWorkshop {
 			translation(tOpt, m_surfP);
 			m_surfP.update(m_surfP);
 			
+		//}
+	}
+	
+	
+		/**********Instead of calling closestVertex() to find point to point distance use this for point-to-plane distance************/
+	public void PointToPlaneDistance(){
+		int RandSelP = RandomSelectionP();
+		int index;
+		double[] distpts = new double[RandSelP];
+		double[] results;
+		PdVector [] vertices_P = m_surfP.getVertices();
+		PdVector [] vertices_Q = m_surfQ.getVertices();
+		int lengthOfQ=vertices_Q.length;
+
+		PdVector normal, p, q;
+		PdVector pq= new PdVector(0.0, 0.0, 0.0);
+		double normal_length;
+		
+		for (int i = 0; i<RandSelP; i++){
+			Arrays.fill(distpts,0.0);
+			normal= m_surfP.getVertexNormal(PointsOfSurfaceP.get(i));
+			normal_length=normal.length();
+			p = vertices_P[PointsOfSurfaceP.get(i)];
+			for(int j = 0; j < lengthOfQ; j++){
+				q = vertices_Q[j];
+				pq.setEntry(0,p.getEntry(0)-q.getEntry(0));
+				pq.setEntry(1,p.getEntry(1)-q.getEntry(1));
+				pq.setEntry(2,p.getEntry(2)-q.getEntry(2));
+				distpts[j] = Math.abs(PdVector.dot(pq,normal))/normal_length;
+			}
+			results = min_index(distpts);
+			index = (int) results[0];
+			matchingPointsP[i]=vertices_P[PointsOfSurfaceP.get(i)];
+			matchingPointsQ[i]=vertices_Q[index];
+			distance[i]=results[1];
 		}
 	}
 

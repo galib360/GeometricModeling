@@ -48,8 +48,10 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 	protected Button button_closestVertex;
 	protected Button button_discardPoints;
 	protected Button btnRegister;
+	protected Button btnRegister2;
 	
 	protected Label lbl;
+	protected Label lbl2;
 
 	/** Constructor */
 	public Registration_IP () {
@@ -99,14 +101,19 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		pSetSurfaces.add(m_bSetSurfaces, BorderLayout.CENTER);
 		add(pSetSurfaces);
 		
-		Panel bottom = new Panel (new GridLayout(1,2));
+		Panel bottom = new Panel (new GridLayout(2,2));
 		btnRegister = new Button("Register Surface");
 		btnRegister.addActionListener(this);
+		btnRegister2 = new Button("Register Surface point2plane");
+		btnRegister2.addActionListener(this);
 		
 		lbl = new Label();
+		lbl2 = new Label();
 		
 		bottom.add(btnRegister);
 		bottom.add(lbl);
+		bottom.add(btnRegister2);
+		bottom.add(lbl2);
 		add(bottom);
 		
 		
@@ -171,6 +178,12 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 			//addSubTitle("Created the button");
 			lbl.setText("Registering Surface...");
 			m_registration.surfaceRegistration();
+			lbl.setText("Registering Done!");
+		}
+		else if (source == btnRegister2){
+			//addSubTitle("Created the button");
+			lbl2.setText("Registering point2plane...");
+			//m_registration.surfaceRegistration();
 			lbl.setText("Registering Done!");
 		}
 		/*
