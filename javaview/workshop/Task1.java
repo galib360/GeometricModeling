@@ -1,5 +1,6 @@
 package workshop;
 
+import java.lang.Math;
 import java.util.Stack;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,7 +78,7 @@ public class Task1 extends PjWorkshop {
 			vol.addEntry(tetrahedronVolume(vertices[i],vertices[i+1],vertices[i+2]));
 			//vol.addEntry(tetrahedronVolume(vertices.getEntries(i),vertices.getEntries(i+1),vertices.getEntries(i+2)));
 		}
-		return vol.sum();
+		return Math.abs(vol.sum());
 	}
 	
 	public int computeComponents() {
