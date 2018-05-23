@@ -1,15 +1,5 @@
 package workshop;
 
-import java.awt.Color;
-import java.util.Vector;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
-//import com.sun.javafx.geom.PickRay;
 
 import jv.geom.PgBndPolygon;
 import jv.geom.PgElementSet;
@@ -26,11 +16,27 @@ import jv.vecmath.PiVector;
 import jv.vecmath.PuMath;
 import jv.viewer.PvDisplay;
 import jv.project.PvGeometryIf;
+import jv.vecmath.PdMatrix;
+import jv.vecmath.PdVector;
+import jvx.project.PjWorkshop;
 
 import Jama.Matrix;
 import Jama.SingularValueDecomposition;
 
 import jvx.project.PjWorkshop;
+
+import java.awt.Color;
+import java.util.Vector;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
+//import com.sun.javafx.geom.PickRay;
+
+
 //import sun.java2d.cmm.ProfileDataVerifier;
 
 
@@ -50,7 +56,15 @@ public class Registration extends PjWorkshop {
 	// Arrays to save the P and Q points that match as well as the calculatetd distance between them
 	PdVector[] matchingPointsP;
 	PdVector[] matchingPointsQ;
-	double distance[] = {1,3,3,6,7,8,15}; 
+	
+	PdVector[] updatedMatchingPointsP;
+	PdVector[] updatedMatchingPointsQ;
+
+	
+	
+	//double distance[] = {1,3,3,6,7,8,15};
+	double distance [];
+	int maximumIteration = 300;
 
 	/** Constructor */
 	public Registration() {
@@ -93,11 +107,13 @@ public class Registration extends PjWorkshop {
 	}
 
 	/*****Closest Distance*****/
-	public int closestVertex(){
+	public void closestVertex(){
 		int RandSelP = RandomSelectionP();
 		int index;
 		double[] distpts = new double[RandSelP];
 		double[] results;
+		
+		distance = new double [m_surfQ.getNumVertices()];
 
 		PdVector [] vertices_P = m_surfP.getVertices();
 		PdVector [] vertices_Q = m_surfQ.getVertices();
@@ -113,7 +129,7 @@ public class Registration extends PjWorkshop {
 			matchingPointsQ[i]=vertices_Q[index];
 			distance[i]=results[1];
 		}
-		return matchingPointsQ.length;
+		//return matchingPointsQ.length; //made it void
 	}
 
 	public double[] min_index(double[] a){
@@ -201,7 +217,7 @@ public class Registration extends PjWorkshop {
 
 		// Median still to be calculated, not sure if point to point allocation works for centroid as well
 		
-	}
+	
 	
 	public PdMatrix calculateM(PdVector[] P, PdVector[] Q) {
         PdVector pBar = calcCentroid(P);
@@ -211,8 +227,8 @@ public class Registration extends PjWorkshop {
         for(int i = 0; i < P.length; i++) {
             PdMatrix matrixRow = new PdMatrix();
             
-			PdVector pMinusPBar = PdVector.subNew(verticesP[i], centroidP);
-            PdVector qMinusQBar = PdVector.subNew(verticesQ[i], centroidQ);
+			PdVector pMinusPBar = PdVector.subNew(P[i], pBar);
+            PdVector qMinusQBar = PdVector.subNew(Q[i], qBar);
             
             matrixRow.adjoint(pMinusPBar, qMinusQBar); // = v * w^T
             M.add(matrixRow);
@@ -221,14 +237,14 @@ public class Registration extends PjWorkshop {
         return M;
     }
 	
-	public PdMatrix calculateRopt(SingularValueDecomposition svd) { //have to call this from Registration_IP after declaring the singular value decomposition
+	public PdMatrix calculateRopt(SingularValueDecomposition svd) { //have to call this after declaring the singular value decomposition
         Matrix mat = Matrix.identity(3,3);
         Matrix V = svd.getV();
         Matrix UT = svd.getU();
 		UT.transpose();
-        Matrix VUT = V.times(Ut);
-		mat.set(2, 2, VUt.det());
-        Matrix optR = V.times(mat).times(Ut);
+        Matrix VUT = V.times(UT);
+		mat.set(2, 2, VUT.det());
+        Matrix optR = V.times(mat).times(UT);
 		PdMatrix Ropt = new PdMatrix(optR.getArrayCopy());
 
         return Ropt;
@@ -242,6 +258,63 @@ public class Registration extends PjWorkshop {
 		PdVector tOpt = PdVector.subNew(centroidQ, out);
         return tOpt;
     }
+	
+	public void updatePointsArray(PdVector [] P, PdVector [] Q){
+		List <PdVector> psurf = new ArrayList<PdVector>();
+		List <PdVector> qsurf = new ArrayList<PdVector>();
+		
+		for(int i =0; i< P.length; i++){
+			if(P[i]!=null) psurf.add(P[i]); 
+		}
+		for(int i =0; i< Q.length; i++){
+			if(Q[i]!=null) qsurf.add(Q[i]); 
+		}
+		
+		updatedMatchingPointsP = psurf.toArray();
+		updatedMatchingPointsQ = qsurf.toArray();
+	}
+	
+	public void translation(PdVector tOpt, PgElementSet P){
+		PdVector [] vertex = P.getVertices();
+		for(int i =0; i< vertex.length; i++){
+			vertex[i].add(tOpt);
+		}
+		
+	}
+	
+	public void rotation(PdMatrix Ropt, PgElementSet P){
+		PdVector [] vertex = P.getVertices();
+		for(int i =0; i< vertex.length; i++){
+			vertex[i].leftMultMatrix(Ropt);
+		}
+		
+	}
+	
+	
+	public void surfaceRegistration(){
+		/* 	1. first select random vertices from P. 
+			2. get closest vertices
+			3. calculate distance and median;; distance is also calculated inside closestVertex()
+			4. remove vetices based on median
+			5. compute M , SVD
+			6. rotate, translate and update mesh
+		*/	
+		
+		for(int step =0; step< maximumIteration; step++){
+			
+			closestVertex(); //random selection is called inside closest vertex
+			int noOfDiscardedPoints = DiscardPoints(3);
+			updatePointsArray(matchingPointsP, matchingPointsQ);
+			PdMatrix M = calculateM(updatedMatchingPointsP, updatedMatchingPointsP);
+			SingularValueDecomposition SVD = new SingularValueDecomposition (new Jama.Matrix(M.getEntries()));
+			PdMatrix Ropt = calculateRopt(SVD);
+			PdVector tOpt = calculateTopt(matchingPointsP, matchingPointsQ, Ropt);
+			rotation(Ropt, m_surfP);
+			translation(tOpt, m_surfP);
+			m_surfP.update(m_surfP);
+			
+		}
+	}
 
 }
 

@@ -1,5 +1,21 @@
 package workshop;
 
+import jv.geom.PgElementSet;
+import jv.object.PsConfig;
+import jv.object.PsDialog;
+import jv.object.PsUpdateIf;
+import jv.objectGui.PsList;
+import jv.project.PgGeometryIf;
+import jv.project.PvGeometryIf;
+import jv.viewer.PvDisplay;
+import jvx.project.PjWorkshop_IP;
+
+import jv.vecmath.PdMatrix;
+import jv.vecmath.PdVector;
+
+import Jama.Matrix;
+import Jama.SingularValueDecomposition;
+
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Dimension;
@@ -11,18 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
-import jv.geom.PgElementSet;
-import jv.object.PsConfig;
-import jv.object.PsDialog;
-import jv.object.PsUpdateIf;
-import jv.objectGui.PsList;
-import jv.project.PgGeometryIf;
-import jv.project.PvGeometryIf;
-import jv.viewer.PvDisplay;
-import jvx.project.PjWorkshop_IP;
 
-import Jama.Matrix;
-import Jama.SingularValueDecomposition;
 
 
 import java.util.*;
@@ -42,6 +47,9 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 	// Our variables 
 	protected Button button_closestVertex;
 	protected Button button_discardPoints;
+	protected Button btnRegister;
+	
+	protected Label lbl;
 
 	/** Constructor */
 	public Registration_IP () {
@@ -89,13 +97,26 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		m_bSetSurfaces = new Button("Set selected surfaces");
 		m_bSetSurfaces.addActionListener(this);
 		pSetSurfaces.add(m_bSetSurfaces, BorderLayout.CENTER);
-		button_closestVertex = new Button ("Calculate closest vertices");
+		add(pSetSurfaces);
+		
+		Panel bottom = new Panel (new GridLayout(1,2));
+		btnRegister = new Button("Register Surface");
+		btnRegister.addActionListener(this);
+		
+		lbl = new Label();
+		
+		bottom.add(btnRegister);
+		bottom.add(lbl);
+		
+		
+		/*button_closestVertex = new Button ("Calculate closest vertices");
 		button_closestVertex.addActionListener(this);
 		pSetSurfaces.add(button_closestVertex,BorderLayout.NORTH);
 		button_discardPoints = new Button("Discard points");
 		button_discardPoints.addActionListener(this);
 		pSetSurfaces.add(button_discardPoints,BorderLayout.SOUTH);
 		add(pSetSurfaces);
+		*/
 		
 		updateGeomList();
 		validate();
@@ -145,6 +166,11 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 			addSubTitle("P= " + String.valueOf(m_registration.RandomSelectionP()));
 			return;
 		}
+		else if (source == btnRegister){
+			//addSubTitle("Created the button");
+			m_registration.surfaceRegistration();
+		}
+		/*
 		else if (source == button_closestVertex){
 			addSubTitle("Created the button");
 			addSubTitle("HI "+String.valueOf(m_registration.closestVertex()));
@@ -153,6 +179,7 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 			addSubTitle("Discarding points." + String.valueOf(m_registration.MedianDistance()));
 			addSubTitle("Discrder points ="+ String.valueOf(m_registration.DiscardPoints(2)));
 		}
+		*/
 	}
 	/**
 	 * Get information which bottom buttons a dialog should create
