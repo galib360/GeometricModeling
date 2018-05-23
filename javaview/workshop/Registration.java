@@ -59,8 +59,8 @@ public class Registration extends PjWorkshop {
 	
 	PdVector[] updatedMatchingPointsP;
 	PdVector[] updatedMatchingPointsQ;
+	double []  updatedDistance;
 
-	
 	
 	//double distance[] = {1,3,3,6,7,8,15};
 	double distance [];
@@ -253,14 +253,14 @@ public class Registration extends PjWorkshop {
 	public PdVector calculateTopt(PdVector[] P, PdVector[] Q, PdMatrix Ropt) {
         PdVector centroidP = calcCentroid(P);
         PdVector centroidQ = calcCentroid(Q);
-		PdVector out;
+		PdVector out = new PdVector(); //Initialization was needed
 		Ropt.leftMultMatrix(out, centroidP);
 		PdVector tOpt = PdVector.subNew(centroidQ, out);
         return tOpt;
     }
 	
-	public void updatePointsArray(PdVector [] P, PdVector [] Q){
-		List <PdVector> psurf = new ArrayList<PdVector>();
+	public void updatePointsArray(/*PdVector [] P, PdVector [] Q*/){
+	/*	List <PdVector> psurf = new ArrayList<PdVector>();
 		List <PdVector> qsurf = new ArrayList<PdVector>();
 		
 		for(int i =0; i< P.length; i++){
@@ -271,7 +271,18 @@ public class Registration extends PjWorkshop {
 		}
 		
 		updatedMatchingPointsP = psurf.toArray();
-		updatedMatchingPointsQ = qsurf.toArray();
+		updatedMatchingPointsQ = qsurf.toArray();*/
+		int counter=0;
+		for (int i=0; i<distance.length; i++){
+			if (distance[i] != -1){
+				updatedDistance[counter] = distance[i];
+				updatedMatchingPointsP[counter] = matchingPointsP[i];
+				updatedMatchingPointsQ[counter] = matchingPointsQ[i];
+				counter++;
+			}
+		}
+
+
 	}
 	
 	public void translation(PdVector tOpt, PgElementSet P){
@@ -304,7 +315,7 @@ public class Registration extends PjWorkshop {
 			
 			closestVertex(); //random selection is called inside closest vertex
 			int noOfDiscardedPoints = DiscardPoints(3);
-			updatePointsArray(matchingPointsP, matchingPointsQ);
+			updatePointsArray(/*matchingPointsP, matchingPointsQ*/);
 			PdMatrix M = calculateM(updatedMatchingPointsP, updatedMatchingPointsP);
 			SingularValueDecomposition SVD = new SingularValueDecomposition (new Jama.Matrix(M.getEntries()));
 			PdMatrix Ropt = calculateRopt(SVD);
