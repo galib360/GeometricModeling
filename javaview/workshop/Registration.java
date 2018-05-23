@@ -88,13 +88,14 @@ public class Registration extends PjWorkshop {
 	
 	/*****Random selection of points from mesh P*****/
 	public int RandomSelectionP(){
-		int numberOfPoints=m_surfP.getNumVertices();
-		int[] SelectedP=new int [numberOfPoints];
+		int numberOfPoints = m_surfP.getNumVertices();
+		int[] SelectedP = new int [numberOfPoints];
 		for (int i=0; i<numberOfPoints;i++){
 			SelectedP[i]=-1;
 		}
 		int counter=1;
-		int numberOfSamples=numberOfPoints/10;
+		//int numberOfSamples = numberOfPoints/10;
+		int numberOfSamples = 300;
 		while (counter<=numberOfSamples){
 			int x = ThreadLocalRandom.current().nextInt(0, numberOfPoints + 1);
 			if (SelectedP[x]==-1){
@@ -306,7 +307,7 @@ public class Registration extends PjWorkshop {
 		/* 	1. first select random vertices from P. 
 			2. get closest vertices
 			3. calculate distance and median;; distance is also calculated inside closestVertex()
-			4. remove vetices based on median
+			4. remove vertices based on median
 			5. compute M , SVD
 			6. rotate, translate and update mesh
 		*/	
@@ -319,7 +320,7 @@ public class Registration extends PjWorkshop {
 			PdMatrix M = calculateM(updatedMatchingPointsP, updatedMatchingPointsP);
 			SingularValueDecomposition SVD = new SingularValueDecomposition (new Jama.Matrix(M.getEntries()));
 			PdMatrix Ropt = calculateRopt(SVD);
-			PdVector tOpt = calculateTopt(matchingPointsP, matchingPointsQ, Ropt);
+			PdVector tOpt = calculateTopt(updatedMatchingPointsP, updatedMatchingPointsQ, Ropt);
 			rotation(Ropt, m_surfP);
 			translation(tOpt, m_surfP);
 			m_surfP.update(m_surfP);

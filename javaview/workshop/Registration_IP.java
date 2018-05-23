@@ -107,6 +107,7 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		
 		bottom.add(btnRegister);
 		bottom.add(lbl);
+		add(bottom);
 		
 		
 		/*button_closestVertex = new Button ("Calculate closest vertices");
@@ -168,7 +169,9 @@ public class Registration_IP extends PjWorkshop_IP implements ActionListener{
 		}
 		else if (source == btnRegister){
 			//addSubTitle("Created the button");
+			lbl.setText("Registering Surface...");
 			m_registration.surfaceRegistration();
+			lbl.setText("Registering Done!");
 		}
 		/*
 		else if (source == button_closestVertex){
